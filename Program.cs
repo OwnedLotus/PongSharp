@@ -1,4 +1,5 @@
 ﻿using Raylib_cs;
+
 using PongSharp.models;
 using System.Numerics;
 
@@ -11,7 +12,6 @@ class Program
         //TODO! Bounds checking on the paddle collision
         //Bounds checking on the paddle movement
         //add points
-        //add gamestates
         //add ball speed modifier
 
         Raylib.SetTargetFPS(60);
@@ -30,7 +30,8 @@ class Program
         float movementSpeed = 1f;
         float ballSpeed = 1f;
 
-        var players = (new Player(0, "Player1", p1spawn, playerWidth, playerHeight), new Player(1, "Player2", p2spawn, playerWidth, playerHeight));
+        var players = (new Player(0, "Player1", p1spawn,
+                    playerWidth, playerHeight), new Player(1, "Player2", p2spawn, playerWidth, playerHeight));
 
 
 
@@ -40,19 +41,53 @@ class Program
 
         while (!Raylib.WindowShouldClose())
         {
-            gameBoard.UpdateBoard();
+            switch (gameBoard.state)
+            {
+                case GameState.Startup:
+                    RunStartup();
+
+                    if (Raylib.IsKeyPressed(KeyboardKey.Enter))
+                    {
+                        gameBoard.state = GameState.Playing;
+                    }
+                    break;
+                case GameState.Playing:
+                    gameBoard.UpdateBoard();
+                    break;
+                case GameState.GameOver:
+                    RunGameOver();
+                    if (Raylib.IsKeyPressed(KeyboardKey.Enter))
+                    {
+                        gameBoard.state = GameState.Startup;
+                    }
+                    if (Raylib.IsKeyPressed(KeyboardKey.Escape))
+                    {
+                        Environment.Exit(0);
+                    }
+                    break;
+            }
+
             Raylib.BeginDrawing();
             Raylib.ClearBackground(Color.White);
-
+            Raylib.DrawFPS(10, 10);
 
             gameBoard.DrawBoard();
             gameBoard.DrawPlayers();
-
-            Raylib.DrawFPS(10, 10);
 
             Raylib.EndDrawing();
         }
 
         Raylib.CloseWindow();
+
+        void RunStartup()
+        {
+            Raylib.DrawText("Play Pong -- Press Enter", 20, 20, 40, Color.Black);
+        }
+
+        void RunGameOver()
+        {
+
+        }
     }
+
 }

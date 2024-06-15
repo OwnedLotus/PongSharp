@@ -1,5 +1,5 @@
-using System.Numerics;
 using Raylib_cs;
+using System.Numerics;
 
 
 namespace PongSharp.models;
@@ -10,8 +10,8 @@ class Player
     public string name = String.Empty;
     public Vector2 position;
 
-    public ushort playerWidth = 50;
-    public ushort playerHeight = 50;
+    public ushort playerWidth;
+    public ushort playerHeight;
     private Color playerColor;
 
 
