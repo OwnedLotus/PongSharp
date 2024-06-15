@@ -15,9 +15,10 @@ class GameBoard
     private bool isSinglePlayer = true;
     public GameState state;
 
+    private (Vector2i, Vector2i) boardSize;
 
-    private Vector2 boardSize;
-
+    private uint xWallLen;
+    private uint yWallLen;
     private Wall northWall;
     private Wall southWall;
     private Wall eastWall;
@@ -31,9 +32,8 @@ class GameBoard
     private float playerSpeed = 40f;
     private Ball ball;
 
-    public GameBoard(Vector2 size, (Player, Player) players, ushort m, float ps, float bs, ushort ballWidth)
+    public GameBoard(Vector2i size, (Player, Player) players, ushort m, float ps, float bs, ushort ballWidth)
     {
-        boardSize = size;
 
         Players = new List<Player>()
         {
@@ -44,15 +44,19 @@ class GameBoard
         margin = m;
         playerSpeed = ps;
 
-        ball = new Ball(boardSize / 2, ballWidth, bs);
 
-        northWall = new Wall(0 + margin, 0 + margin, (int)boardSize.X - margin, 0 + margin);
+        boardSize = (new Vector2i(0 + margin, 0 + margin), new Vector2i(size.X - margin, size.Y - margin));
+
+        // position is naturally the average of the size of the board not offset by using boardSize which would be offset
+        ball = new Ball(new Vector2(size.X / 2, size.Y / 2), ballWidth, bs);
+
+        northWall = new(new Vector2i(boardSize.Item1.X, boardSize.Item1.Y), new Vector2i(boardSize.Item2.X, boardSize.Item1.Y));
         //Console.WriteLine($"North Wall Y: {northWall.yEnd}");
-        southWall = new Wall(0 + margin, (int)boardSize.Y - margin, (int)boardSize.X - margin, (int)boardSize.Y - margin);
+        southWall = new(new Vector2i(boardSize.Item1.X, boardSize.Item2.Y), new Vector2i(boardSize.Item2.X, boardSize.Item2.Y));
         //Console.WriteLine($"South Wall Y: {southWall.yEnd}");
-        eastWall = new Wall(0 + margin, 0 + margin, 0 + margin, (int)boardSize.Y - margin);
+        eastWall = new(new Vector2i(boardSize.Item2.X, boardSize.Item1.Y), new Vector2i(boardSize.Item2.X, boardSize.Item2.Y));
         //Console.WriteLine($"East Wall X: {eastWall.xEnd}");
-        westWall = new Wall((int)boardSize.X - margin, 0 + margin, (int)boardSize.X - margin, (int)boardSize.Y - margin);
+        westWall = new(new Vector2i(boardSize.Item1.X, boardSize.Item1.Y), new Vector2i(boardSize.Item1.X, boardSize.Item2.Y));
         //Console.WriteLine($"West Wall X: {westWall.xEnd}");
 
         state = GameState.Startup;
@@ -65,15 +69,16 @@ class GameBoard
             return;
 
         // upper horizontal line
-        Raylib.DrawLine(northWall.xStart, northWall.yStart, northWall.xEnd, northWall.yEnd, Color.Black);
+        Raylib.DrawLine(northWall.start.X, northWall.start.Y, northWall.end.X, northWall.end.Y, Color.Black);
+
         // lower horizontal line
-        Raylib.DrawLine(southWall.xStart, southWall.yStart, southWall.xEnd, southWall.yEnd, Color.Black);
+        Raylib.DrawLine(southWall.start.X, southWall.start.Y, southWall.end.X, southWall.end.Y, Color.Black);
 
         // left vertical line
-        Raylib.DrawLine(eastWall.xStart, eastWall.yStart, eastWall.xEnd, eastWall.yEnd, Color.Black);
+        Raylib.DrawLine(eastWall.start.X, eastWall.start.Y, eastWall.end.X, eastWall.end.Y, Color.Black);
 
         // Right vertical line
-        Raylib.DrawLine(westWall.xStart, westWall.yStart, westWall.xEnd, westWall.yEnd, Color.Black);
+        Raylib.DrawLine(westWall.start.X, westWall.start.Y, westWall.end.X, westWall.end.Y, Color.Black);
     }
 
     public void DrawPlayers()
@@ -81,7 +86,7 @@ class GameBoard
         if (state != GameState.Playing)
             return;
 
-        Raylib.DrawText($"Ball Position: {(int)ball.position.X}, {(int)ball.position.Y}", (int)boardSize.X / 2, 10, 20, Color.Black);
+        Raylib.DrawText($"Ball Position: {(int)ball.position.X}, {(int)ball.position.Y}", boardSize.Item2.X / 2, 10, 20, Color.Black);
 
         foreach (var player in Players)
         {
@@ -113,27 +118,27 @@ class GameBoard
         int ballPositionY = (int)ball.position.Y;
 
 
-        if (ballPositionY == northWall.yEnd)
+        if (ballPositionY == northWall.end.Y)
         {
             Console.WriteLine($"Ball Current Position: {ball.position}");
             ball.heading.Y = -ball.heading.Y;
             Console.WriteLine($"New Heading: {ball.heading}");
 
         }
-        else if (ballPositionY + ball.width == southWall.yEnd)
+        else if (ballPositionY + ball.width == southWall.end.Y)
         {
             Console.WriteLine($"Ball Current Position: {ball.position}");
             ball.heading.Y = -ball.heading.Y;
             Console.WriteLine($"New Heading: {ball.heading}");
         }
 
-        if (ballPositionX + ball.width == westWall.xEnd)
+        if (ballPositionX + ball.width == westWall.end.X)
         {
             Console.WriteLine($"Ball Current Position: {ball.position}");
             ball.heading.X = -ball.heading.X;
             Console.WriteLine($"New Heading: {ball.heading}");
         }
-        else if (ballPositionX == eastWall.xEnd)
+        else if (ballPositionX == eastWall.end.X)
         {
             Console.WriteLine($"Ball Current Position: {ball.position}");
             ball.heading.X = -ball.heading.X;
@@ -159,18 +164,5 @@ class GameBoard
     }
 }
 
-struct Wall
-{
-    public int xStart;
-    public int yStart;
-    public int xEnd;
-    public int yEnd;
-
-    public Wall(int x1, int y1, int x2, int y2)
-    {
-        xStart = x1;
-        xEnd = x2;
-        yStart = y1;
-        yEnd = y2;
-    }
-}
+public record Wall(Vector2i start, Vector2i end);
+public record Vector2i(int X, int Y);

@@ -13,10 +13,11 @@ class Program
         //Bounds checking on the paddle movement
         //add points
         //add ball speed modifier
+        // paddles are lower than desired
 
         Raylib.SetTargetFPS(60);
 
-        var boardSize = new Vector2(800, 480);
+        var boardSize = new Vector2i(800, 480);
         ushort playerWidth = 10;
         ushort playerHeight = 50;
         ushort boardMargin = 30;
@@ -31,13 +32,10 @@ class Program
         float ballSpeed = 1f;
 
         var players = (new Player(0, "Player1", p1spawn,
-                    playerWidth, playerHeight), new Player(1, "Player2", p2spawn, playerWidth, playerHeight));
+                playerWidth, playerHeight), new Player(1, "Player2", p2spawn, playerWidth, playerHeight));
 
-
-
-        var gameBoard = new GameBoard(boardSize, players, boardMargin, movementSpeed, ballSpeed, ballWidth);
-
-
+        var gameBoard = new GameBoard(boardSize, players,
+                boardMargin, movementSpeed, ballSpeed, ballWidth);
 
         while (!Raylib.WindowShouldClose())
         {
@@ -51,9 +49,11 @@ class Program
                         gameBoard.state = GameState.Playing;
                     }
                     break;
+
                 case GameState.Playing:
                     gameBoard.UpdateBoard();
                     break;
+
                 case GameState.GameOver:
                     RunGameOver();
                     if (Raylib.IsKeyPressed(KeyboardKey.Enter))
@@ -86,7 +86,8 @@ class Program
 
         void RunGameOver()
         {
-
+            Raylib.DrawText("GAME OVER -- Press Enter to play again", 20, 20, 20, Color.Black);
+            Raylib.DrawText("Press Escape to quit the game", 20, 40, 20, Color.Black);
         }
     }
 
