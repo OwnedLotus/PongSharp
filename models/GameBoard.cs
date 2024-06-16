@@ -15,6 +15,8 @@ class GameBoard
     private bool isSinglePlayer = true;
     public GameState state;
 
+    private Vector2i windowSize;
+
     private (Vector2i, Vector2i) boardSize;
 
     private uint xWallLen;
@@ -31,6 +33,7 @@ class GameBoard
     private Vector2 player2Spawn;
     private float playerSpeed = 40f;
     private Ball ball;
+    private uint rallie = 0;
 
     public GameBoard(Vector2i size, (Player, Player) players, ushort m, float ps, float bs, ushort ballWidth)
     {
@@ -44,6 +47,7 @@ class GameBoard
         margin = m;
         playerSpeed = ps;
 
+        windowSize = size;
 
         boardSize = (new Vector2i(0 + margin, 0 + margin), new Vector2i(size.X - margin, size.Y - margin));
 
@@ -103,64 +107,88 @@ class GameBoard
     // the second int is the player 2 controlled by up/down
     public void UpdateBoard()
     {
-        int player1XPos = (int)(Players[0].position.X + Players[0].playerWidth);
-        int player2XPos = (int)(Players[1].position.X - Players[1].playerWidth);
-        int player1YPos = (int)(Players[0].position.Y);
-        int player2YPos = (int)(Players[1].position.Y);
+        var player1XPos = (int)(Players[0].position.X + Players[0].playerWidth);
+        var player2XPos = (int)(Players[1].position.X - Players[1].playerWidth);
+        var player1YPos = (int)(Players[0].position.Y);
+        var player2YPos = (int)(Players[1].position.Y);
+        var player1YEnd = (int)(Players[0].position.Y + Players[0].playerHeight);
+        var player2YEnd = (int)(Players[1].position.Y + Players[1].playerHeight);
 
 
         if (Raylib.IsKeyDown(KeyboardKey.W)) Players[0].position.Y -= 1 * playerSpeed;
         if (Raylib.IsKeyDown(KeyboardKey.S)) Players[0].position.Y += 1 * playerSpeed;
-        if (Raylib.IsKeyDown(KeyboardKey.Up)) Players[1].position.Y -= 1 * playerSpeed;
-        if (Raylib.IsKeyDown(KeyboardKey.Down)) Players[1].position.Y += 1 * playerSpeed;
 
-        int ballPositionX = (int)ball.position.X;
-        int ballPositionY = (int)ball.position.Y;
-
-
-        if (ballPositionY == northWall.end.Y)
+        if (!isSinglePlayer)
         {
-            Console.WriteLine($"Ball Current Position: {ball.position}");
-            ball.heading.Y = -ball.heading.Y;
-            Console.WriteLine($"New Heading: {ball.heading}");
-
+            if (Raylib.IsKeyDown(KeyboardKey.Up)) Players[1].position.Y -= 1 * playerSpeed;
+            if (Raylib.IsKeyDown(KeyboardKey.Down)) Players[1].position.Y += 1 * playerSpeed;
         }
-        else if (ballPositionY + ball.width == southWall.end.Y)
+        else
         {
-            Console.WriteLine($"Ball Current Position: {ball.position}");
-            ball.heading.Y = -ball.heading.Y;
-            Console.WriteLine($"New Heading: {ball.heading}");
+            Player2AISimple();
         }
 
-        if (ballPositionX + ball.width == westWall.end.X)
+        switch (ball.position)
         {
-            Console.WriteLine($"Ball Current Position: {ball.position}");
-            ball.heading.X = -ball.heading.X;
-            Console.WriteLine($"New Heading: {ball.heading}");
-        }
-        else if (ballPositionX == eastWall.end.X)
-        {
-            Console.WriteLine($"Ball Current Position: {ball.position}");
-            ball.heading.X = -ball.heading.X;
-            Console.WriteLine($"New Heading: {ball.heading}");
-        }
-        if (ballPositionX == player1XPos)
-        {
-            Console.WriteLine("Player 1 Paddle hit");
-            ball.heading.X = -ball.heading.X;
-        }
-        else if (ballPositionX == player2XPos)
-        {
-            Console.WriteLine("Player 2 Paddle hit");
-            ball.heading.X = -ball.heading.X;
-        }
+            // north wall collision
+            case Vector2 n when (int)n.Y == northWall.end.Y:
+                Console.WriteLine($"Ball Current Position: {ball.position}");
+                ball.heading.Y = -ball.heading.Y;
+                Console.WriteLine($"New Heading: {ball.heading}");
+                break;
 
+            // south wall collision
+            case Vector2 n when (int)n.Y + ball.width == southWall.end.Y:
+                Console.WriteLine($"Ball Current Position: {ball.position}");
+                ball.heading.Y = -ball.heading.Y;
+                Console.WriteLine($"New Heading: {ball.heading}");
+                break;
+
+            // east wall collision player2 side
+            case Vector2 n when (int)n.X == eastWall.end.X - ball.width:
+                Console.WriteLine($"Ball Current Position: {ball.position}");
+                ball.heading.X = -ball.heading.X;
+                Console.WriteLine($"New Heading: {ball.heading}");
+                // point scored for player 1
+                Players[0].points++;
+                break;
+
+            // west wall collision player side
+            case Vector2 n when (int)n.X == westWall.end.X:
+                Console.WriteLine($"Ball Current Position: {ball.position}");
+                ball.heading.X = -ball.heading.X;
+                Console.WriteLine($"New Heading: {ball.heading}");
+                // point scored for player 2
+                Players[1].points++;
+                break;
+
+            // player 1 collision
+            case Vector2 n when ((int)n.Y >= player1YPos && (int)n.Y <= player1YEnd && (int)n.X == player1XPos):
+                Console.WriteLine("Player 1 Paddle hit");
+                ball.heading.X = -ball.heading.X;
+                rallie++;
+                break;
+
+            case Vector2 n when ((int)n.Y >= player2YPos && (int)n.Y <= player2YEnd && (int)n.X == player2XPos):
+                Console.WriteLine("Player 2 Paddle hit");
+                ball.heading.X = -ball.heading.X;
+                rallie++;
+                break;
+
+            default:
+                break;
+        };
 
         // ball will follow the heading 
         ball.position += (ball.heading * ball.speed);
+    }
 
-
-
+    private void Player2AISimple()
+    {
+        // simple solution
+        // move to the position of the paddle
+        if (ball.position.Y > Players[1].position.Y) Players[1].position.Y -= 1 * playerSpeed;
+        else if (ball.position.Y < Players[1].position.Y) Players[1].position.Y += 1 * playerSpeed;
     }
 }
 

@@ -14,7 +14,7 @@ class Player
     public ushort playerHeight;
     private Color playerColor;
 
-
+    public ushort points = 0;
 
     public Player(ushort _id, string _name, Vector2 pos, ushort width, ushort height)
     {
