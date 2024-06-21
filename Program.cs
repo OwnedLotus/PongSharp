@@ -9,12 +9,8 @@ class Program
 {
     public static void Main()
     {
-        //TODO! Bounds checking on the paddle collision
-        //Bounds checking on the paddle movement
-        //add points
-        //add ball speed modifier
-        // paddles are lower than desired
 
+        // Current issue, inconsistant collisions on paddles and fast misses
         Raylib.SetTargetFPS(60);
 
         var boardSize = new Vector2i(800, 480);
