@@ -14,6 +14,7 @@ class GameBoard
 {
     private bool isSinglePlayer = true;
     public GameState state;
+    private ushort pointsToWin;
 
     private Vector2i windowSize;
 
@@ -36,7 +37,7 @@ class GameBoard
     private Ball ball;
     private uint rallie = 0;
 
-    public GameBoard(Vector2i size, (Player, Player) players, ushort m, float ps, float bs, ushort ballWidth)
+    public GameBoard(Vector2i size, (Player, Player) players, ushort m, float ps, float bs, ushort ballWidth, ushort ptw = 10)
     {
 
         Players = new List<Player>()
@@ -170,6 +171,7 @@ class GameBoard
                 //Console.WriteLine($"New Heading: {ball.heading}");
                 // point scored for player 1
                 Players[0].points++;
+                ResetBoard();
                 break;
 
             // west wall collision player side
@@ -179,6 +181,7 @@ class GameBoard
                 //Console.WriteLine($"New Heading: {ball.heading}");
                 // point scored for player 2
                 Players[1].points++;
+                ResetBoard();
                 break;
 
             // player 1 collision
@@ -215,6 +218,13 @@ class GameBoard
         // move to the position of the paddle
         if (ball.position.Y > Players[1].position.Y && !touchingSouth) Players[1].position.Y += 1 * playerSpeed;
         else if (ball.position.Y < Players[1].position.Y && !touchingNorth) Players[1].position.Y -= 1 * playerSpeed;
+    }
+
+    private void ResetBoard()
+    {
+        // set ball back to middle
+        // reset players
+        // keep points
     }
 }
 

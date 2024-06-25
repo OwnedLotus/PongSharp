@@ -11,6 +11,8 @@ class Program
     {
 
         // Current issue, inconsistant collisions on paddles and fast misses
+        // Issue on spacing of the player models
+
         Raylib.SetTargetFPS(60);
 
         var boardSize = new Vector2i(800, 480);
